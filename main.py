@@ -14,7 +14,7 @@ async def on_ready():
     print("Name:", bot.user.name)
     print("ID:", bot.user.id)
     await bot.change_presence(game=discord.Game(name="FDX_GOL"))
-    await bot.get_channel(187319694363983873).send_message("Yeah yeah, I'm here, let me get my mop.")
+    #await bot.get_channel(187319694363983873).send("Yeah yeah, I'm here, let me get my mop.")
 
 @bot.event
 async def on_message(message):
@@ -35,6 +35,18 @@ async def cat(ctx):
     facts = factFile.read().splitlines()
     factFile.close()
     await ctx.send(random.choice(facts))
+
+@bot.command()
+async def grab(ctx, arg):
+    messages = await ctx.channel.history(limit=500).flatten()
+    i = 0
+    isFound = False
+    while not isFound:
+        if str(messages[i].author) == arg:
+            await ctx.send("Message found! "+str(messages[i].content))
+            isFound = True
+        i += 1
+
 
 bot.run("key-goes-here")
 
