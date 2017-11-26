@@ -39,13 +39,11 @@ async def cat(ctx):
 @bot.command()
 async def grab(ctx, arg):
     messages = await ctx.channel.history(limit=500).flatten()
-    i = 0
-    isFound = False
-    while not isFound:
-        if str(messages[i].author) == arg:
-            await ctx.send("Message found! "+str(messages[i].content))
-            isFound = True
-        i += 1
+    print(arg)
+    for i in messages:
+        if str(i.author.mention) == arg:
+            await ctx.send("Message found! "+str(i.content))
+            break
 
 
 bot.run("key-goes-here")
