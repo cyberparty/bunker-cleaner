@@ -45,6 +45,8 @@ async def grab(ctx, arg):
             await ctx.send("Message found! "+str(i.content))
             break
 
-
-bot.run("key-goes-here")
+keyfile = open("key.txt", "r")
+key = keyfile.readline()
+keyfile.close()
+bot.run(key)
 
