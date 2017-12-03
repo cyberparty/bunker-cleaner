@@ -8,6 +8,7 @@ des = "Someone's gotta clean up those drugs."
 pref = "!"
 client = discord.Client()
 bot = commands.Bot(description=des, command_prefix=pref)
+botId = 379970263917264926
 
 @bot.event
 async def on_ready():
@@ -41,7 +42,7 @@ async def cat(ctx):
 async def grab(ctx, arg):
     msgFound = False
     messages = await ctx.channel.history(limit=500).flatten()
-    if int(arg.strip('<>@!')) != 379970263917264926:
+    if int(arg.strip('<>@!')) != botId:
         for i in messages:
             if str(i.author.mention) == arg:
                 msgFound = True
@@ -80,7 +81,7 @@ async def quote(ctx, arg):
             for i in quotedb["users"]:
                 if i["id"] == int(arg.strip('<>@!')):
                     userQuote = i["quotes"][0]["text"].replace('/"', '"')
-                    quoteFound = True
+                    quoteFound = True  # todo: just check if userQuote is set. stop being a skrub.
                     break
             if quoteFound:
                 await ctx.send('They said: "'+userQuote+'"')
@@ -88,8 +89,19 @@ async def quote(ctx, arg):
                 await ctx.send("ERROR: No such user.")
         except:
             ctx.send("ERROR: Sparky fucked up. Go talk to him and tell him the command you entered to get this message.")
-            json.dump(quotedb, quotesjson)
+            #json.dump(quotedb, quotesjson)
 
+@bot.command()
+async def list(ctx, arg):
+    with open("db.json") as quotesjson:
+        quotedb = json.load(quotesjson)
+        for user in quotedb["users"]:
+            if user["id"] == int(arg.strip('<>@!')):  # todo: just add this to variable.
+                listString = ""
+                for quote in user["quotes"]:
+                    listString += "("+str(quote["id"])+": "+quote["text"]+")"
+                break
+        await ctx.send(listString)
 
 
 keyfile = open("key.txt", "r")
