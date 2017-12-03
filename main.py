@@ -1,6 +1,7 @@
 import discord
 import asyncio
 import random
+import json
 from discord.ext import commands
 from discord.ext.commands import Bot
 des = "Someone's gotta clean up those drugs."
@@ -38,15 +39,60 @@ async def cat(ctx):
 
 @bot.command()
 async def grab(ctx, arg):
+    msgFound = False
     messages = await ctx.channel.history(limit=500).flatten()
-    print(arg)
-    for i in messages:
-        if str(i.author.mention) == arg:
-            await ctx.send("Message found! "+str(i.content))
-            break
+    if int(arg.strip('<>@!')) != 379970263917264926:
+        for i in messages:
+            if str(i.author.mention) == arg:
+                msgFound = True
+                msgQuote = str(i.content).replace('"', '/"')
+                await ctx.send('Quote saved: "'+msgQuote+'"')
+                with open("db.json", "r+") as quotesjson:
+                    quotedb = json.load(quotesjson)
+                idFound = False
+                for i in quotedb["users"]:
+                    if i["id"] == int(arg.strip('<>@!')):
+                        idFound = True
+                        i["quotes"].insert(0, {"text":msgQuote, "id":quotedb["next_id"]})
+                        i["count"] += 1
+                        print("MSG saved into existing user.")
+                        break
+                if not idFound:
+                    quotedb["users"].append({"id":int(arg.strip('<>@!')), "quotes":[], "count":1})
+                    quotedb["users"][-1]["quotes"].insert(0, {"text":msgQuote, "id":quotedb["next_id"]})
+                    print("MSG saved into new user")
+                quotedb["count"] += 1
+                quotedb["next_id"] += 1
+                with open("db.json", "w") as quotesjson:
+                    json.dump(quotedb, quotesjson)
+                break
+        if not msgFound:
+            await ctx.send("Error: User not found / User's message not within 500 messages.")
+    else:
+        await ctx.send("No, fuck you.")
+
+@bot.command()
+async def quote(ctx, arg):
+    quoteFound = False
+    with open("db.json") as quotesjson:
+        quotedb = json.load(quotesjson)
+        try:
+            for i in quotedb["users"]:
+                if i["id"] == int(arg.strip('<>@!')):
+                    userQuote = i["quotes"][0]["text"].replace('/"', '"')
+                    quoteFound = True
+                    break
+            if quoteFound:
+                await ctx.send('They said: "'+userQuote+'"')
+            else:
+                await ctx.send("ERROR: No such user.")
+        except:
+            ctx.send("ERROR: Sparky fucked up. Go talk to him and tell him the command you entered to get this message.")
+            json.dump(quotedb, quotesjson)
+
+
 
 keyfile = open("key.txt", "r")
 key = keyfile.readline()
 keyfile.close()
 bot.run(key)
-
