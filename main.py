@@ -10,13 +10,18 @@ client = discord.Client()
 bot = commands.Bot(description=des, command_prefix=pref)
 botId = 379970263917264926
 
+def factspew(fileName):
+    factFile = open(str(fileName), "r")
+    facts = factFile.read().splitlines()
+    factFile.close()
+    return facts
+
 @bot.event
 async def on_ready():
     print("Commander, your favourite cleaner bot is now online!")
     print("Name:", bot.user.name)
     print("ID:", bot.user.id)
     await bot.change_presence(game=discord.Game(name="FDX_GOL"))
-    #await bot.get_channel(187319694363983873).send("Yeah yeah, I'm here, let me get my mop.")
 
 @bot.event
 async def on_message(message):
@@ -33,10 +38,11 @@ async def sin(ctx):
 
 @bot.command()
 async def cat(ctx):
-    factFile = open("catfacts.txt", "r")
-    facts = factFile.read().splitlines()
-    factFile.close()
-    await ctx.send(random.choice(facts))
+    await ctx.send(random.choice(factspew("catfacts.txt")))
+
+@bot.command()
+async def shark(ctx):
+    await ctx.send(random.choice(factspew("sharkfacts.txt")))
 
 @bot.command()
 async def grab(ctx, arg):
@@ -97,7 +103,7 @@ async def list(ctx, arg):
         quotedb = json.load(quotesjson)
         for user in quotedb["users"]:
             if user["id"] == int(arg.strip('<>@!')):  # todo: just add this to variable.
-                listString = ""
+                listString = "Their quotes: "
                 for quote in user["quotes"]:
                     listString += "("+str(quote["id"])+": "+quote["text"]+")"
                 break
