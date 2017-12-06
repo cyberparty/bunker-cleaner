@@ -1,6 +1,6 @@
 import discord
 import asyncio
-import random
+from random import randint, choice
 import json
 from discord.ext import commands
 from discord.ext.commands import Bot
@@ -10,8 +10,8 @@ client = discord.Client()
 bot = commands.Bot(description=des, command_prefix=pref)
 botId = 379970263917264926
 
-def factspew(fileName):
-    factFile = open(str(fileName), "r")
+def factspew(fileName, fileEncoding):
+    factFile = open(str(fileName), "r", encoding=fileEncoding)
     facts = factFile.read().splitlines()
     factFile.close()
     return facts
@@ -38,17 +38,21 @@ async def sin(ctx):
 
 @bot.command()
 async def cat(ctx):
-    await ctx.send(random.choice(factspew("catfacts.txt")))
+    await ctx.send(choice(factspew("catfacts.txt", None)))
 
 @bot.command()
 async def shark(ctx):
-    await ctx.send(random.choice(factspew("sharkfacts.txt")))
+    await ctx.send(choice(factspew("sharkfacts.txt", None)))
+
+@bot.command()
+async def herken(ctx):
+    await ctx.send(choice(factspew("hwkquotes.txt", 'UTF-8')))
 
 @bot.command()
 async def grab(ctx, arg):
     msgFound = False
     messages = await ctx.channel.history(limit=500).flatten()
-    if int(arg.strip('<>@!')) != botId:
+    if int(arg.strip('<>@!')) != botId and int(arg.strip('<>@!')) != ctx.author.id:
         for i in messages:
             if str(i.author.mention) == arg:
                 msgFound = True
@@ -108,6 +112,25 @@ async def list(ctx, arg):
                     listString += "("+str(quote["id"])+": "+quote["text"]+")"
                 break
         await ctx.send(listString)
+
+@bot.command()
+async def context(ctx):
+    await ctx.send("Probably something to do with cocks.")
+
+@bot.command()
+async def random(ctx):
+    with open("db.json") as quotesjson:
+        quotedb = json.load(quotesjson)
+        randomQuoteIter = randint(0, quotedb["count"])
+        idPos = -1
+        while randomQuoteIter >= 0:
+            idPos += 1
+            randomQuoteIter -= quotedb["users"][idPos]["count"]
+        randQuote = quotedb["users"][idPos]["quotes"][randomQuoteIter]["text"]
+        mentionId = "<@"+str(quotedb["users"][idPos]["id"])+">"
+        await ctx.send(mentionId+': "'+randQuote+'"')
+
+
 
 
 keyfile = open("key.txt", "r")
