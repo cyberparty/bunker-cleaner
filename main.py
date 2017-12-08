@@ -10,6 +10,30 @@ client = discord.Client()
 bot = commands.Bot(description=des, command_prefix=pref)
 botId = 379970263917264926
 
+def create_colour(raw_colour):
+    try:
+        return int(raw_colour,16)
+    except:
+        return None
+
+def get_role_name(user):
+    return "col_"+str(user.id)
+    
+def get_role(server,user):
+    role_name=get_role_name(user)
+    
+    for role in server.roles:
+        if role.name==role_name:
+            return role
+
+    return None
+
+async def create_role(server,user,role_col):
+    role_name=get_role_name(user)
+    role=await server.create_role(name=role_name,colour=discord.Colour(role_col))
+    await role.edit(position=2)
+    return role
+
 def factspew(fileName, fileEncoding):
     factFile = open(str(fileName), "r", encoding=fileEncoding)
     facts = factFile.read().splitlines()
@@ -131,6 +155,28 @@ async def random(ctx):
         await ctx.send(mentionId+': "'+randQuote+'"')
 
 
+@bot.command()
+async def ping(ctx):
+    await ctx.send("pong")
+
+@bot.command()
+async def col(ctx,msg=None):
+    if msg is not None:
+
+        col=create_colour(msg)
+
+        if col is not None:
+
+            server=ctx.message.guild
+            user=ctx.message.author
+
+            role=get_role(server,user)
+
+            if role is not None:
+                await role.delete()
+
+            role=await create_role(server,user,col)
+            await user.add_roles(role)
 
 
 keyfile = open("key.txt", "r")
