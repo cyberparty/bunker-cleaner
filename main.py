@@ -1,7 +1,7 @@
 import discord
 import asyncio
 from random import randint, choice
-import json
+import db
 from discord.ext import commands
 from discord.ext.commands import Bot
 des = "Someone's gotta clean up those drugs."
@@ -9,6 +9,9 @@ pref = "!"
 client = discord.Client()
 bot = commands.Bot(description=des, command_prefix=pref)
 botId = 379970263917264926
+
+def get_db():
+    return db.JsonDB("db.json")
 
 def fact_spew(fileName, fileEncoding):
     factFile = open(str(fileName), "r", encoding=fileEncoding)
@@ -130,41 +133,38 @@ async def herken(ctx):
 @bot.command()
 async def grab(ctx, arg):
     messages = await ctx.channel.history(limit=512).flatten()
-    with open("db.json", "r+") as quotesjson:
-        quotedb = json.load(quotesjson)
-    grabresult = grab_quote(quotedb, messages, arg)
-    if grabresult is None:
+    print(messages)
+    lastMessage = get_last_msg(messages,arg)
+    print(lastMessage)
+    
+    if lastMessage is None:
         await ctx.send("ERROR: ID doesn't exist / User hasn't sent a message in the last 512 messages.")
     else:
-        grabresult["count"] += 1
-        grabresult["next_id"] += 1
-        with open("db.json", "w") as quotesjson:
-            json.dump(grabresult, quotesjson)
+        db=get_db()
+        db.add_quote(lastMessage,arg)
         await ctx.send("Quote saved.")
 
 @bot.command()
 async def quote(ctx, arg):
-    with open("db.json") as quotesjson:
-        quotedb = json.load(quotesjson)
-    await ctx.send(get_quote_by_user(quotedb, arg))
+    db=get_db()
+    await ctx.send(db.get_quote_user_index(arg))
 
 @bot.command()
 async def list(ctx, arg):
-    with open("db.json") as quotesjson:
-        quotedb = json.load(quotesjson)
-    await ctx.send(list_quotes(quotedb, arg))
+    db=get_db()
+    quotes = db.get_user(arg)
+    
+    await ctx.send(quotes)
 
 @bot.command()
 async def random(ctx):
-    with open("db.json") as quotesjson:
-        quotedb = json.load(quotesjson)
-    await ctx.send(random_quote(quotedb))
+    db = get_db()
+    await ctx.send(db.get_random_quote())
 
 @bot.command()
 async def say(ctx, arg):
-    with open("db.json", "r+") as quotesjson:
-        quotedb = json.load(quotesjson)
-    await ctx.send(get_quote_by_id(quotedb, arg))
+    db = get_db()
+    await ctx.send(db.get_quote_ID(arg))
 
 
 keyfile = open("key.txt", "r")
