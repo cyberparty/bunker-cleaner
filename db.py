@@ -55,6 +55,7 @@ class JsonDB:
 
         user.insert(0,{"ID":quoteID,"text":text})
         self.update_quote_created()
+        self.save()
 
     #Get a quote from an user, given its index (default is most recent one)
     def get_quote_user_index(self,userID,index=0):
@@ -84,5 +85,6 @@ class JsonDB:
                     rv=quote
                     del user_quotes[index]
                     self.update_quote_deleted()
+                    self.save()
                     return rv
         return None
