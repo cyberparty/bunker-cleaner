@@ -1,4 +1,5 @@
 import json
+import random
 
 #JsonDB driver. Implements quote management functionality, and loading and saving to disk
 class JsonDB:
@@ -88,3 +89,25 @@ class JsonDB:
                     self.save()
                     return rv
         return None
+
+    #Get a random quote from the database, and the user it belongs to
+    def get_random_quote(self):
+        count=self.js["count"]
+        if count<=0:
+            return None
+        
+        goal=random.randint(0,count-1)
+        for user in self.js["users"]:
+            quotes=self.js[user]
+            goal-=len(quotes)
+            if goal<0:
+                return(user,quotes[goal])
+        return (None,None)
+
+    #Get a random quote from a specific user, and the user it belongs to
+    def get_random_quote(self,userID):
+        userID=str(userID)
+        
+        user=self.get_user(userID)
+        index=random.randint(0,len(user)-1)
+        return (userID,user[index])
