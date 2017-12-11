@@ -98,16 +98,23 @@ class JsonDB:
         
         goal=random.randint(0,count-1)
         for user in self.js["users"]:
-            quotes=self.js[user]
+            quotes=self.js["users"][user]
             goal-=len(quotes)
             if goal<0:
                 return(user,quotes[goal])
         return (None,None)
 
     #Get a random quote from a specific user, and the user it belongs to
-    def get_random_quote(self,userID):
+    def get_random_quote_user(self,userID):
         userID=str(userID)
         
         user=self.get_user(userID)
+        if user is None:
+            return (None,None)
+        
+        count=len(user)
+        if count<=0:
+            return (None,None)
+        
         index=random.randint(0,len(user)-1)
         return (userID,user[index])
