@@ -13,6 +13,12 @@ botId = 379970263917264926
 def get_db():
     return db.JsonDB("db.json")
 
+def convert_ID(userMention):
+    try:
+        return int(userMention.strip("!@<>"))
+    except Exception:
+        return None
+
 def fact_spew(fileName, fileEncoding):
     factFile = open(str(fileName), "r", encoding=fileEncoding)
     facts = factFile.read().splitlines()
@@ -132,29 +138,37 @@ async def herken(ctx):
 
 @bot.command()
 async def grab(ctx, arg):
+    userID = convert_ID(arg)
     messages = await ctx.channel.history(limit=512).flatten()
-    print(messages)
-    lastMessage = get_last_msg(messages,arg)
-    print(lastMessage)
+    lastMessage = sanitize_msg(get_last_msg(messages,userID).content)
     
     if lastMessage is None:
         await ctx.send("ERROR: ID doesn't exist / User hasn't sent a message in the last 512 messages.")
     else:
         db=get_db()
-        db.add_quote(lastMessage,arg)
+        db.add_quote(lastMessage,userID)
         await ctx.send("Quote saved.")
 
 @bot.command()
 async def quote(ctx, arg):
     db=get_db()
-    await ctx.send(db.get_quote_user_index(arg))
+    userID = convert_ID(arg)
+    quote = db.get_quote_user_index(userID)
+    quote_text = quote["text"]
+    await ctx.send(quote_text)
 
 @bot.command()
 async def list(ctx, arg):
     db=get_db()
-    quotes = db.get_user(arg)
-    
-    await ctx.send(quotes)
+    userID = convert_ID(arg)
+    quotes = db.get_user(userID)
+
+    if quotes is not None:
+
+        msg = ""
+        for quote in quotes:
+            msg += "({} | {})".format(quote["ID"],quote["text"])
+        await ctx.send(msg)
 
 @bot.command()
 async def random(ctx):
@@ -164,7 +178,8 @@ async def random(ctx):
 @bot.command()
 async def say(ctx, arg):
     db = get_db()
-    await ctx.send(db.get_quote_ID(arg))
+    quote = db.get_quote_ID(int(arg))
+    await ctx.send(quote["text"])
 
 
 keyfile = open("key.txt", "r")
