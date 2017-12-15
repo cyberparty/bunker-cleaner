@@ -1,7 +1,7 @@
 import discord
 import asyncio
 from random import randint, choice
-import json
+import db
 from discord.ext import commands
 from discord.ext.commands import Bot
 des = "Someone's gotta clean up those drugs."
@@ -34,11 +34,45 @@ async def create_role(server,user,role_col):
     await role.edit(position=2)
     return role
 
-def factspew(fileName, fileEncoding):
+async def say_quote(ctx,user_quote):
+    try:
+        (userID,quote)=user_quote
+        quote_text=quote["text"]
+        await ctx.send(convert_to_mention(userID)+" -> "+quote_text)
+    except Exception:
+        await ctx.send("Quote not found.")
+            
+
+def get_db():
+    return db.JsonDB("db.json")
+
+def convert_ID(userMention):
+    try:
+        return int(userMention.strip("!@<>"))
+    except Exception:
+        return None
+
+def convert_to_mention(userID):
+    try:
+        userID=int(userID)
+    except Exception:
+        return None
+    return "<@"+str(userID)+">"
+
+def fact_spew(fileName, fileEncoding):
     factFile = open(str(fileName), "r", encoding=fileEncoding)
     facts = factFile.read().splitlines()
     factFile.close()
     return facts
+
+def get_last_msg(messages, userid):
+    for message in messages:
+        if message.author.id == userid:
+            return message
+    return None
+
+def sanitize_msg(message):
+    return message.replace('"', '/"')
 
 @bot.event
 async def on_ready():
@@ -62,102 +96,73 @@ async def sin(ctx):
 
 @bot.command()
 async def cat(ctx):
-    await ctx.send(choice(factspew("catfacts.txt", None)))
+    await ctx.send(choice(fact_spew("catfacts.txt", None)))
 
 @bot.command()
 async def shark(ctx):
-    await ctx.send(choice(factspew("sharkfacts.txt", None)))
+    await ctx.send(choice(fact_spew("sharkfacts.txt", None)))
 
 @bot.command()
 async def herken(ctx):
-    await ctx.send(choice(factspew("hwkquotes.txt", 'UTF-8')))
+    await ctx.send(choice(fact_spew("hwkquotes.txt", 'UTF-8')))
 
 @bot.command()
 async def grab(ctx, arg):
-    msgFound = False
-    messages = await ctx.channel.history(limit=500).flatten()
-    if int(arg.strip('<>@!')) != botId and int(arg.strip('<>@!')) != ctx.author.id:
-        for i in messages:
-            if str(i.author.mention) == arg:
-                msgFound = True
-                msgQuote = str(i.content).replace('"', '/"')
-                await ctx.send('Quote saved: "'+msgQuote+'"')
-                with open("db.json", "r+") as quotesjson:
-                    quotedb = json.load(quotesjson)
-                idFound = False
-                for i in quotedb["users"]:
-                    if i["id"] == int(arg.strip('<>@!')):
-                        idFound = True
-                        i["quotes"].insert(0, {"text":msgQuote, "id":quotedb["next_id"]})
-                        i["count"] += 1
-                        print("MSG saved into existing user.")
-                        break
-                if not idFound:
-                    quotedb["users"].append({"id":int(arg.strip('<>@!')), "quotes":[], "count":1})
-                    quotedb["users"][-1]["quotes"].insert(0, {"text":msgQuote, "id":quotedb["next_id"]})
-                    print("MSG saved into new user")
-                quotedb["count"] += 1
-                quotedb["next_id"] += 1
-                with open("db.json", "w") as quotesjson:
-                    json.dump(quotedb, quotesjson)
-                break
-        if not msgFound:
-            await ctx.send("Error: User not found / User's message not within 500 messages.")
+    userID = convert_ID(arg)
+    messages = await ctx.channel.history(limit=512).flatten()
+    lastMessage = sanitize_msg(get_last_msg(messages,userID).content)
+    
+    if lastMessage is None:
+        await ctx.send("ERROR: ID doesn't exist / User hasn't sent a message in the last 512 messages.")
     else:
-        await ctx.send("No, fuck you.")
+        db=get_db()
+        db.add_quote(lastMessage,userID)
+        await ctx.send("Quote saved.")
+
+@bot.command()
+async def ungrab(ctx, arg):
+    db=get_db()
+    quoteID = int(arg)
+    (user,quote)=db.remove_quote_ID(quoteID)
+
+    if quote is None:
+        await ctx.send("Quote not found.")
+    else:
+        await ctx.send("Quote deleted.")
 
 @bot.command()
 async def quote(ctx, arg):
-    quoteFound = False
-    with open("db.json") as quotesjson:
-        quotedb = json.load(quotesjson)
-        try:
-            for i in quotedb["users"]:
-                if i["id"] == int(arg.strip('<>@!')):
-                    userQuote = i["quotes"][0]["text"].replace('/"', '"')
-                    quoteFound = True  # todo: just check if userQuote is set. stop being a skrub.
-                    break
-            if quoteFound:
-                await ctx.send('They said: "'+userQuote+'"')
-            else:
-                await ctx.send("ERROR: No such user.")
-        except:
-            ctx.send("ERROR: Sparky fucked up. Go talk to him and tell him the command you entered to get this message.")
-            #json.dump(quotedb, quotesjson)
+    db=get_db()
+    userID = convert_ID(arg)
+    quote = db.get_quote_user_index(userID)
+    await say_quote(ctx, quote)
 
 @bot.command()
 async def list(ctx, arg):
-    with open("db.json") as quotesjson:
-        quotedb = json.load(quotesjson)
-        for user in quotedb["users"]:
-            if user["id"] == int(arg.strip('<>@!')):  # todo: just add this to variable.
-                listString = "Their quotes: "
-                for quote in user["quotes"]:
-                    listString += "("+str(quote["id"])+": "+quote["text"]+")"
-                break
-        await ctx.send(listString)
+    db=get_db()
+    userID = convert_ID(arg)
+    quotes = db.get_user(userID)
 
-@bot.command()
-async def context(ctx):
-    await ctx.send("Probably something to do with cocks.")
+    if quotes is None:
+        await ctx.send("No quotes found")
+            else:
+
+        msg = ""
+        for quote in quotes:
+            msg += "({0} | {1})".format(quote["ID"],quote["text"])
+        await ctx.send(msg)
 
 @bot.command()
 async def random(ctx):
-    with open("db.json") as quotesjson:
-        quotedb = json.load(quotesjson)
-        randomQuoteIter = randint(0, quotedb["count"])
-        idPos = -1
-        while randomQuoteIter >= 0:
-            idPos += 1
-            randomQuoteIter -= quotedb["users"][idPos]["count"]
-        randQuote = quotedb["users"][idPos]["quotes"][randomQuoteIter]["text"]
-        mentionId = "<@"+str(quotedb["users"][idPos]["id"])+">"
-        await ctx.send(mentionId+': "'+randQuote+'"')
-
+    db = get_db()
+    quote=db.get_random_quote()
+    await say_quote(ctx, quote)
 
 @bot.command()
-async def ping(ctx):
-    await ctx.send("pong")
+async def say(ctx, arg):
+    db = get_db()
+    quote = db.get_quote_ID(int(arg))
+    await say_quote(ctx, quote)
 
 @bot.command()
 async def col(ctx,msg=None):
@@ -178,6 +183,7 @@ async def col(ctx,msg=None):
             role=await create_role(server,user,col)
             await user.add_roles(role)
 
+if __name__ == "__main__":
 
 keyfile = open("key.txt", "r")
 key = keyfile.readline()
