@@ -189,8 +189,9 @@ async def say(ctx, arg):
     else:
         await ctx.send(quote["text"])
 
+if __name__ == "__main__":
 
-keyfile = open("key.txt", "r")
-key = keyfile.readline()
-keyfile.close()
-bot.run(key)
+	keyfile = open("key.txt", "r")
+	key = keyfile.readline()
+	keyfile.close()
+	bot.run(key)
