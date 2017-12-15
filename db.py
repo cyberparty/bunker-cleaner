@@ -56,9 +56,13 @@ class JsonDB:
         user=self.get_user(userID,True)
         quoteID=str(self.get_new_ID())
 
-        user.insert(0,{"ID":quoteID,"text":text})
+        quote={"ID":quoteID,"text":text}
+        user.insert(0,quote)
         self.update_quote_created()
         self.save()
+
+        return (userID,quote)
+        
 
     #Get a quote from an user, given its index (default is most recent one)
     def get_quote_user_index(self,userID,index=0):
@@ -67,30 +71,34 @@ class JsonDB:
         user=self.get_user(userID)
         if user is not None:
             try:
-                return user[index]
+                return (userID,user[index])
             except Exception:
                 pass
-        return None
+        return (None,None)
 
     #Get a quote from the db, given its ID
     def get_quote_ID(self,quoteID):
-        for user_quotes in self.js["users"].values():
+        quoteID=str(quoteID)
+        for user in self.js["users"]:
+            user_quotes=self.js["users"][user]
             for quote in user_quotes:
                 if quote["ID"]==quoteID:
-                    return quote
-        return None
+                    return (int(user),quote)
+        return (None,None)
 
     #Remove a quote by ID, return the deleted quote (None if not found)
     def remove_quote_ID(self,quoteID):
-        for user_quotes in self.js["users"].values():
+        quoteID=str(quoteID)
+        for user in self.js["users"]:
+            user_quotes=self.js["users"][user]
             for (index,quote) in enumerate(user_quotes):
                 if quote["ID"]==quoteID:
                     rv=quote
                     del user_quotes[index]
                     self.update_quote_deleted()
                     self.save()
-                    return rv
-        return None
+                    return (int(user),rv)
+        return (None,None)
 
     #Get a random quote from the database, and the user it belongs to
     def get_random_quote(self):
@@ -103,7 +111,7 @@ class JsonDB:
             quotes=self.js["users"][user]
             goal-=len(quotes)
             if goal<0:
-                return(user,quotes[goal])
+                return(int(user),quotes[goal])
         return (None,None)
 
     #Get a random quote from a specific user, and the user it belongs to
@@ -119,4 +127,4 @@ class JsonDB:
             return (None,None)
         
         index=random.randint(0,len(user)-1)
-        return (userID,user[index])
+        return (int(userID),user[index])
