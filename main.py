@@ -10,6 +10,39 @@ client = discord.Client()
 bot = commands.Bot(description=des, command_prefix=pref)
 botId = 379970263917264926
 
+def create_colour(raw_colour):
+    try:
+        return int(raw_colour,16)
+    except:
+        return None
+
+def get_role_name(user):
+    return "col_"+str(user.id)
+    
+def get_role(server,user):
+    role_name=get_role_name(user)
+    
+    for role in server.roles:
+        if role.name==role_name:
+            return role
+
+    return None
+
+async def create_role(server,user,role_col):
+    role_name=get_role_name(user)
+    role=await server.create_role(name=role_name,colour=discord.Colour(role_col))
+    await role.edit(position=2)
+    return role
+
+async def say_quote(ctx,user_quote):
+    try:
+        (userID,quote)=user_quote
+        quote_text=quote["text"]
+        await ctx.send(convert_to_mention(userID)+" -> "+quote_text)
+    except Exception:
+        await ctx.send("Quote not found.")
+            
+
 def get_db():
     return db.JsonDB("db.json")
 
@@ -18,6 +51,13 @@ def convert_ID(userMention):
         return int(userMention.strip("!@<>"))
     except Exception:
         return None
+
+def convert_to_mention(userID):
+    try:
+        userID=int(userID)
+    except Exception:
+        return None
+    return "<@"+str(userID)+">"
 
 def fact_spew(fileName, fileEncoding):
     factFile = open(str(fileName), "r", encoding=fileEncoding)
@@ -33,76 +73,6 @@ def get_last_msg(messages, userid):
 
 def sanitize_msg(message):
     return message.replace('"', '/"')
-
-def create_user_in_db(jsondb, userid):
-    jsondb["users"].append({"id": userid, "quotes": [], "count": 0})
-
-def insert_msg_into_db(jsondb, message):
-    auth_id = message.author.id
-    text = message.content
-    for user in jsondb["users"]:
-        if user["id"] == auth_id:
-            user["quotes"].insert(0, {"text": text, "id": jsondb["next_id"]})
-            user["count"] += 1
-            break
-    else:
-        create_user_in_db(jsondb, auth_id)
-
-    jsondb["count"] += 1
-    jsondb["next_id"] += 1
-
-
-
-
-
-# def grab_quote(jsonDb, channelMsgs, userID):
-#     for message in channelMsgs:
-#         if str(message.author.mention) == userID:
-#             msgQuote = str(message.content).replace('"', '/"')
-#             for user in jsonDb["users"]:
-#                 if user["id"] == int(userID.strip('<>@!')):
-#                     user["quotes"].insert(0, {"text":msgQuote, "id":jsonDb["next_id"]})
-#                     user["count"] += 1
-#                     print("MSG saved into existing user.")
-#                     return jsonDb
-#             jsonDb["users"].append({"id":int(userID.strip('<>@!')), "quotes":[], "count":1})
-#             jsonDb["users"][-1]["quotes"].insert(0, {"text":msgQuote, "id":jsonDb["next_id"]})
-#             print("MSG saved into new user")
-#             return jsonDb
-#     return None
-
-def get_quote_by_id(jsonDb, quoteID):
-    for user in jsonDb["users"]:
-        for q in user["quotes"]:
-            if q["id"] == int(quoteID):
-                return q["text"]
-    return "No such quote"
-
-def get_quote_by_user(jsonDb, userID):
-    for i in jsonDb["users"]:
-        if i["id"] == int(userID.strip('<>@!')):
-            userQuote = i["quotes"][0]["text"].replace('/"', '"')
-            return 'They said: "'+userQuote+'"'
-    return "No such user."
-
-def list_quotes(jsonDb, userID):
-    listString = ""
-    for user in jsonDb["users"]:
-        if user["id"] == int(userID.strip('<>@!')):
-            for quote in user["quotes"]:
-                listString += "("+str(quote["id"])+": "+quote["text"]+")"
-            return "Their quotes: "+listString
-    return "No such user."
-
-def random_quote(jsonDb):
-    randomQuoteIter = randint(0, jsonDb["count"])
-    idPos = -1
-    while randomQuoteIter >= 0:
-        idPos += 1
-        randomQuoteIter -= jsonDb["users"][idPos]["count"]
-    randQuote = jsonDb["users"][idPos]["quotes"][randomQuoteIter]["text"]
-    mentionId = "<@"+str(jsonDb["users"][idPos]["id"])+">"
-    return mentionId + ": " + randQuote
 
 @bot.event
 async def on_ready():
@@ -164,12 +134,8 @@ async def ungrab(ctx, arg):
 async def quote(ctx, arg):
     db=get_db()
     userID = convert_ID(arg)
-    (user,quote) = db.get_quote_user_index(userID)
-    if quote is None:
-        await ctx.send("No quote found")
-    else:
-        quote_text = quote["text"]
-        await ctx.send(quote_text)
+    quote = db.get_quote_user_index(userID)
+    await say_quote(ctx, quote)
 
 @bot.command()
 async def list(ctx, arg):
@@ -189,16 +155,33 @@ async def list(ctx, arg):
 @bot.command()
 async def random(ctx):
     db = get_db()
-    await ctx.send(db.get_random_quote())
+    quote=db.get_random_quote()
+    await say_quote(ctx, quote)
 
 @bot.command()
 async def say(ctx, arg):
     db = get_db()
-    (user,quote) = db.get_quote_ID(int(arg))
-    if quote is None:
-        await ctx.send("No quote found")
-    else:
-        await ctx.send(quote["text"])
+    quote = db.get_quote_ID(int(arg))
+    await say_quote(ctx, quote)
+
+@bot.command()
+async def col(ctx,msg=None):
+    if msg is not None:
+
+        col=create_colour(msg)
+
+        if col is not None:
+
+            server=ctx.message.guild
+            user=ctx.message.author
+
+            role=get_role(server,user)
+
+            if role is not None:
+                await role.delete()
+
+            role=await create_role(server,user,col)
+            await user.add_roles(role)
 
 if __name__ == "__main__":
 
