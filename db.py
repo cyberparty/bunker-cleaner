@@ -7,6 +7,7 @@ class JsonDB:
     #Constructor
     def __init__(self,filename):
         self.filename=filename
+        file=None
         #Try to read the existing file
         try:
             file=open(self.filename,"r")
@@ -17,7 +18,8 @@ class JsonDB:
                 self.js={"users":{},"count":0,"nextID":0}
                 json.dump(self.js,new_file)
         finally:
-            file.close()
+            if file is not None:
+                file.close()
 
     #Save the current database into disk
     def save(self):
