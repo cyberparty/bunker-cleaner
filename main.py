@@ -145,7 +145,7 @@ async def list(ctx, arg):
 
     if quotes is None:
         await ctx.send("No quotes found")
-            else:
+    else:
 
         msg = ""
         for quote in quotes:
@@ -185,7 +185,7 @@ async def col(ctx,msg=None):
 
 if __name__ == "__main__":
 
-keyfile = open("key.txt", "r")
-key = keyfile.readline()
-keyfile.close()
-bot.run(key)
+    keyfile = open("key.txt", "r")
+    key = keyfile.readline()
+    keyfile.close()
+    bot.run(key)

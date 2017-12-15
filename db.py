@@ -126,5 +126,4 @@ class JsonDB:
         if count<=0:
             return (None,None)
         
-        index=random.randint(0,len(user)-1)
-        return (int(userID),user[index])
+        return (int(userID),random.choice(user))
