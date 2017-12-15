@@ -153,9 +153,12 @@ async def grab(ctx, arg):
 async def quote(ctx, arg):
     db=get_db()
     userID = convert_ID(arg)
-    quote = db.get_quote_user_index(userID)
-    quote_text = quote["text"]
-    await ctx.send(quote_text)
+    (user,quote) = db.get_quote_user_index(userID)
+    if quote is None:
+        await ctx.send("No quote found")
+    else:
+        quote_text = quote["text"]
+        await ctx.send(quote_text)
 
 @bot.command()
 async def list(ctx, arg):
@@ -166,7 +169,7 @@ async def list(ctx, arg):
     if quotes is not None:
 
         msg = ""
-        for quote in quotes:
+        for (user,quote) in quotes:
             msg += "({} | {})".format(quote["ID"],quote["text"])
         await ctx.send(msg)
 
@@ -178,8 +181,11 @@ async def random(ctx):
 @bot.command()
 async def say(ctx, arg):
     db = get_db()
-    quote = db.get_quote_ID(int(arg))
-    await ctx.send(quote["text"])
+    (user,quote) = db.get_quote_ID(int(arg))
+    if quote is None:
+        await ctx.send("No quote found")
+    else:
+        await ctx.send(quote["text"])
 
 
 keyfile = open("key.txt", "r")
