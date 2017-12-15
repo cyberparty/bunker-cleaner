@@ -150,6 +150,17 @@ async def grab(ctx, arg):
         await ctx.send("Quote saved.")
 
 @bot.command()
+async def ungrab(ctx, arg):
+    db=get_db()
+    quoteID = int(arg)
+    (user,quote)=db.remove_quote_ID(quoteID)
+
+    if quote is None:
+        await ctx.send("Quote not found.")
+    else:
+        await ctx.send("Quote deleted.")
+
+@bot.command()
 async def quote(ctx, arg):
     db=get_db()
     userID = convert_ID(arg)
