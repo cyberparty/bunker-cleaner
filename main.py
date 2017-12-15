@@ -166,11 +166,13 @@ async def list(ctx, arg):
     userID = convert_ID(arg)
     quotes = db.get_user(userID)
 
-    if quotes is not None:
+    if quotes is None:
+        await ctx.send("No quotes found")
+    else:
 
         msg = ""
-        for (user,quote) in quotes:
-            msg += "({} | {})".format(quote["ID"],quote["text"])
+        for quote in quotes:
+            msg += "({0} | {1})".format(quote["ID"],quote["text"])
         await ctx.send(msg)
 
 @bot.command()
