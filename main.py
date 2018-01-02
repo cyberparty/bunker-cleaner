@@ -107,10 +107,14 @@ async def herken(ctx):
     await ctx.send(choice(fact_spew("hwkquotes.txt", 'UTF-8')))
 
 @bot.command()
-async def grab(ctx, arg):
-    userID = convert_ID(arg)
+async def grab(ctx, arg=None):
     messages = await ctx.channel.history(limit=512).flatten()
-    lastMessage = sanitize_msg(get_last_msg(messages,userID).content)
+    if arg is None:
+        userID = messages[0].author.id
+        lastMessage = sanitize_msg(messages[0].content)
+    else:
+        userID = convert_ID(arg)
+        lastMessage = sanitize_msg(get_last_msg(messages,userID).content)
     
     if lastMessage is None:
         await ctx.send("ERROR: ID doesn't exist / User hasn't sent a message in the last 512 messages.")
