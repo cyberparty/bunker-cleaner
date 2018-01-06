@@ -7,6 +7,7 @@ Just a bot tailored towards the needs of the BUNKER server's users.
     * `!quote [user]`: Sends the last grabbed quote of the specified user.
     * `!list [user]`: Lists all the quotes the specified user has, and each quote's ID.
     * `!say [quote id]`: Says the quote with the specified quote ID, which can be found out using `!list`.
+    * `!ungrab [quote id]`: Removes specified quote from database.
     * `!random`: Sends a random quote of all the stored quotes.
 * Facts:
     * `!cat`: Gives you a random cat fact.
