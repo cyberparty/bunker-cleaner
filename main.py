@@ -117,8 +117,8 @@ async def herken(ctx):
 async def grab(ctx, arg=None):
     messages = await ctx.channel.history(limit=512).flatten()
     if arg is None:
-        userID = messages[0].author.id
-        lastMessage = sanitize_msg(messages[0].content)
+        userID = messages[1].author.id
+        lastMessage = sanitize_msg(messages[1].content)
     else:
         userID = convert_ID(arg)
         lastMessage = sanitize_msg(get_last_msg(messages,userID).content)
