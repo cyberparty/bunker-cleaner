@@ -198,4 +198,4 @@ if __name__ == "__main__":
     keyfile = open("key.txt", "r")
     key = keyfile.readline()
     keyfile.close()
-    bot.run("Mzc5OTcwMjYzOTE3MjY0OTI2.DTG8Hg.hXsXyoiKexwVjoNs3NQbe1ItDZM")
+    bot.run(key)
