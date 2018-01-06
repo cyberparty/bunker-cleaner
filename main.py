@@ -8,7 +8,7 @@ des = "Someone's gotta clean up those drugs."
 pref = "!"
 client = discord.Client()
 bot = commands.Bot(description=des, command_prefix=pref)
-botId = 379970263917264926
+#botId = 379970263917264926
 
 def create_colour(raw_colour):
     try:
@@ -38,7 +38,7 @@ async def say_quote(ctx,user_quote):
     try:
         (userID,quote)=user_quote
         quote_text=quote["text"]
-        await ctx.send(convert_to_mention(userID)+" -> "+quote_text)
+        await ctx.send(get_user_nick(userID)+" -> "+quote_text)
     except Exception:
         await ctx.send("Quote not found.")
             
@@ -58,6 +58,13 @@ def convert_to_mention(userID):
     except Exception:
         return None
     return "<@"+str(userID)+">"
+
+def get_user_nick(userID):
+    userID=int(userID)
+    if bot.get_user(userID) is not None:
+        return bot.get_user(userID).name
+    else:
+        return convert_to_mention(userID)
 
 def fact_spew(fileName, fileEncoding):
     factFile = open(str(fileName), "r", encoding=fileEncoding)
@@ -188,8 +195,7 @@ async def col(ctx,msg=None):
             await user.add_roles(role)
 
 if __name__ == "__main__":
-
     keyfile = open("key.txt", "r")
     key = keyfile.readline()
     keyfile.close()
-    bot.run(key)
+    bot.run("Mzc5OTcwMjYzOTE3MjY0OTI2.DTG8Hg.hXsXyoiKexwVjoNs3NQbe1ItDZM")
