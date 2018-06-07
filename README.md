@@ -17,15 +17,21 @@ Just a bot tailored towards the needs of the BUNKER server's users.
     * `!barney`: Reminds you who your god is.
 
 **Requires:**
-* [Python 3.6](https://www.python.org/downloads/release/python-360/)
+* [Python 3.6+](https://www.python.org/downloads/release/python-360/)
 * discord.py rewrite
 	* `python3 -m pip install -U git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py[voice]`
+* aiomysql
+	* `python3 -m pip install aiomysql`
+	* PyMySQL is a dependency of aiomysql, but the above command should automatically install it alongside aiomysql.
+* MySQL Server
 
 **Running the bot:**
 1. Download files into a directory.
-2. Create a file called "key.txt" and put your bot key into it.
-3. Invite your bot to the server.
-4. Run main.py
+2. Place your bot token into the "Token" field in cfg/cfg.json
+3. Run the SQL script. (docs/db.sql)
+	* This script will create a database labeled 'bunkerbot' on localhost unless otherwise defined in cfg/cfg.json. **If you modify the database name, make sure the name defined in db.sql reflects this change, otherwise the bot will not be able to locate the database.**
+4. Invite your bot to the server.
+5. Run main.py
 
 **Issues:**
 If you find any bugs or issues, please submit them on this repo for us to ignore.
