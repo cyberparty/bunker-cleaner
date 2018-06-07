@@ -5,8 +5,6 @@ from cogs.util.botpresets import CBot
 import sys, traceback
 
 
-des = "Someone's gotta clean up those drugs."
-pref = "!"
 client = discord.Client()
 bot = CBot()
 
