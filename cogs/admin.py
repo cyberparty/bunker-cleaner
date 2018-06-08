@@ -36,16 +36,19 @@ class Admin:
 
     # Run an SQL command to the bot's database. Return output where applicable.
     @commands.command()
-    async def sql(self, ctx, arg:str):
+    async def sql(self, ctx, arg:str=None):
         if arg is None:
-            ctx.send("Usage: !db [SQL]")
+            await ctx.send('Usage: !db "[SQL]"')
         else:
             async with self.bot.db() as db:
-                r = await db(arg)
-            if r is None:
-                await ctx.send("Okay.")
-            else:
-                await ctx.send(r[0:3000])
+                try:
+                    r = await db(arg)
+                    if r is None:
+                        await ctx.send("SQL OK: Empty response")
+                    else:
+                        await ctx.send(r[0:3000])
+                except Exception as e:
+                    await ctx.send(e)
 
     # Reload config. Report if it succeeds.
     @commands.command()
