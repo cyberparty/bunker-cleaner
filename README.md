@@ -12,9 +12,16 @@ Just a bot tailored towards the needs of the BUNKER server's users.
 * Facts:
     * `!cat`: Gives you a random cat fact.
     * `!shark`: Gives you a random shark fact.
+* Role colour:
+    * `!col [colour]`: Creates and assigns a role to the sender based on a hex colour value they provide
+        * Requires bot to have role management permissions, and to possess a role higher than the assignee.
+* Admin:
+    * `!sql [sql]`: Execute SQL command to interact with the bot's database via Discord.
+    * `!reload_cfg`: Reload config file.
 * Misc:
     * `!herken`: Displays a relic of a long-lost civilization. 
     * `!barney`: Reminds you who your god is.
+    * `!ready`: I have no idea.
 
 **Requires:**
 * [Python 3.6+](https://www.python.org/downloads/release/python-360/)
