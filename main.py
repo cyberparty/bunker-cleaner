@@ -20,18 +20,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import discord
 from cogs.util.botpresets import CBot
-
-import sys, traceback
+from glob import glob
+import sys
+import traceback
 
 
 client = discord.Client()
 bot = CBot()
 
+# Get all extensions in ./cogs/
+# Thanks, 4Kaylum.
+cogextensions = []
+for cog in glob("./cogs/*.py"):
+    file = cog.replace('\\', '/').split('/')[-1]
+    cogname = 'cogs.' + file[:-3]
+    cogextensions.append(cogname)
 
-cogextensions = ['cogs.quotegrabs',
-                 'cogs.rolecolour',
-                 'cogs.facts',
-                 'cogs.misc']
 
 @bot.event
 async def on_ready():
@@ -39,6 +43,7 @@ async def on_ready():
     print("Name:", bot.user.name)
     print("ID:", bot.user.id)
 
+# Load extensions, and run.
 if __name__ == "__main__":
     for extension in cogextensions:
         try:
