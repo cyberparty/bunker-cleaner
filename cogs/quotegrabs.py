@@ -48,14 +48,14 @@ class Quotegrabs:
             datetime = time.strftime('%Y-%m-%d %H:%M:%S')
             # We need the largest quote ID, so we query it. If it doesn't exist, set to 0. Else, set to largest + 1.
             async with self.bot.db() as db:
-                id_res = await db("SELECT MAX(quote_id) AS quote_id FROM quotes;", None)
-            if id_res[0]['quote_id'] is None:
-                q_id = 0
-            else:
-                q_id = id_res[0]['quote_id'] + 1
+                id_res = await db("SELECT MAX(quote_id) AS quote_id FROM quotes;")
+                if id_res[0]['quote_id'] is None:
+                    q_id = 0
+                else:
+                    q_id = id_res[0]['quote_id'] + 1
 
-            # Write data to database.
-            await db("INSERT INTO quotes VALUES (%s, %s ,%s, %s, %s);", (userID, lastMessage, q_id, g_id, datetime))
+                # Write data to database.
+                await db("INSERT INTO quotes VALUES (%s, %s ,%s, %s, %s);", (userID, lastMessage, q_id, g_id, datetime))
 
             await ctx.send("Quote saved.")
 
@@ -109,7 +109,7 @@ class Quotegrabs:
     @commands.command()
     async def random(self, ctx):
         async with self.bot.db() as db:
-            quote = await db("SELECT * FROM quotes ORDER BY RAND() LIMIT 1;", None)
+            quote = await db("SELECT * FROM quotes ORDER BY RAND() LIMIT 1;")
         if quote is None:
             await ctx.send("No quotes available.")
         else:

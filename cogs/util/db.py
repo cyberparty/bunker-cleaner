@@ -43,8 +43,8 @@ class DBConn(object):
         conn = await aiomysql.connect(**DBConn.config)
         return conn
 
-    async def __call__(self, sql:str, data):
-        await self.cur.execute(sql, data)
+    async def __call__(self, sql:str, *args):
+        await self.cur.execute(sql, *args)
         await self.db.commit()
         r = await self.cur.fetchall()
 
