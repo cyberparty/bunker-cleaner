@@ -47,6 +47,13 @@ class CBot(commands.AutoShardedBot):
     def get_cfg_des(self):
         return self.cfg["Attributes"]["Description"]
 
+    def reload_cfg(self):
+        try:
+            self.cfg = load_cfg()
+            return True
+        except:
+            return False
+
     def run_with_token(self):
         token = self.cfg["Token"]
         self.run(token)

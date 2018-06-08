@@ -21,7 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from discord.ext import commands
 import cogs.util.quotegrabs_functions as quotegrabs
-from cogs.util.db import DBConn
 from cogs.util.botpresets import CBot
 import time
 
@@ -48,15 +47,15 @@ class Quotegrabs:
             g_id = ctx.message.author.id
             datetime = time.strftime('%Y-%m-%d %H:%M:%S')
             # We need the largest quote ID, so we query it. If it doesn't exist, set to 0. Else, set to largest + 1.
-            async with DBConn() as db:
+            async with self.bot.db() as db:
                 id_res = await db("SELECT MAX(quote_id) AS quote_id FROM quotes;", None)
-                if id_res[0]['quote_id'] is None:
-                    q_id = 0
-                else:
-                    q_id = id_res[0]['quote_id'] + 1
+            if id_res[0]['quote_id'] is None:
+                q_id = 0
+            else:
+                q_id = id_res[0]['quote_id'] + 1
 
-                # Write data to database.
-                await db("INSERT INTO quotes VALUES (%s, %s ,%s, %s, %s);", (userID, lastMessage, q_id, g_id, datetime))
+            # Write data to database.
+            await db("INSERT INTO quotes VALUES (%s, %s ,%s, %s, %s);", (userID, lastMessage, q_id, g_id, datetime))
 
             await ctx.send("Quote saved.")
 
@@ -64,7 +63,7 @@ class Quotegrabs:
     @commands.command()
     async def ungrab(self, ctx, arg):
         quoteID = int(arg)
-        async with DBConn() as db:
+        async with self.bot.db() as db:
             await db("DELETE FROM quotes WHERE quote_id=%s;", (quoteID,))
         await ctx.send("Quote deleted.")
 
@@ -73,7 +72,7 @@ class Quotegrabs:
     async def quote(self, ctx, arg):
         user_id = quotegrabs.convert_ID(arg)
         # We need the latest quote, so order by quote_id descending but only return top.
-        async with DBConn() as db:
+        async with self.bot.db() as db:
             quote = await db("SELECT * FROM quotes WHERE user_id=%s ORDER BY quote_id DESC LIMIT 1;", (user_id,))
         if quote is None:
             await ctx.send("User has no quotes / doesn't exist.")
@@ -83,33 +82,33 @@ class Quotegrabs:
     # Say quote based on passed quote ID.
     @commands.command()
     async def say(self, ctx, arg):
-        async with DBConn() as db:
+        async with self.bot.db() as db:
             quote = await db("SELECT * FROM quotes WHERE quote_id=%s;", (arg,))
-            if quote is None:
-                ctx.send("No such quote. Check your passed ID.")
-            else:
-                await quotegrabs.say_quote(ctx, self.bot, quote[0]['user_id'], quote[0]['quote_text'])
+        if quote is None:
+            ctx.send("No such quote. Check your passed ID.")
+        else:
+            await quotegrabs.say_quote(ctx, self.bot, quote[0]['user_id'], quote[0]['quote_text'])
 
     # List quotes of passed user.
     @commands.command()
     async def list(self, ctx, arg):
         user_id = quotegrabs.convert_ID(arg)
-        async with DBConn() as db:
+        async with self.bot.db() as db:
             quote_list = await db("SELECT * FROM quotes WHERE user_id=%s ORDER BY quote_id DESC;", (user_id,))
-            if quote_list is None:
-                ctx.send("User has no quotes / doesn't exist.")
-            else:
-                list_send = "Quotes: "
-                # Keep casting formatted string to list_send, and then send list_send
-                for r in quote_list:
-                    to_add = "({0}: {1}) ".format(r['quote_id'], r['quote_text'][0:70])
-                    list_send += to_add
-        await ctx.send(list_send)
+        if quote_list is None:
+            ctx.send("User has no quotes / doesn't exist.")
+        else:
+            list_send = "Quotes: "
+            # Keep casting formatted string to list_send, and then send list_send
+            for r in quote_list:
+                to_add = "({0}: {1}) ".format(r['quote_id'], r['quote_text'][0:70])
+                list_send += to_add
+            await ctx.send(list_send)
 
     # Get a single random quote from the database..,
     @commands.command()
     async def random(self, ctx):
-        async with DBConn() as db:
+        async with self.bot.db() as db:
             quote = await db("SELECT * FROM quotes ORDER BY RAND() LIMIT 1;", None)
         if quote is None:
             await ctx.send("No quotes available.")
