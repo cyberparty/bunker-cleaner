@@ -43,18 +43,18 @@ class Admin:
             async with self.bot.db() as db:
                 r = await db(arg)
             if r is None:
-                ctx.send("Okay.")
+                await ctx.send("Okay.")
             else:
-                ctx.send(r[0:3000])
+                await ctx.send(r[0:3000])
 
     # Reload config. Report if it succeeds.
     @commands.command()
     async def reload_cfg(self, ctx):
         r = self.bot.reload_cfg()
         if r:
-            ctx.send("Config reloaded.")
+            await ctx.send("Config reloaded.")
         else:
-            ctx.send("Unable to reload config.")
+            await ctx.send("Unable to reload config.")
 
 
 def setup(bot:CBot):
