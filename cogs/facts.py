@@ -26,7 +26,7 @@ from cogs.util.botpresets import CBot
 
 class Facts:
 
-    def __init__(self, bot):
+    def __init__(self, bot:CBot):
         self.bot = bot
 
     @commands.command()
