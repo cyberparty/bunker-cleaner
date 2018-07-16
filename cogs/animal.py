@@ -7,7 +7,7 @@ from io import BytesIO
 class Animal:
     def __init__(self, bot:CBot):
         self.bot = bot
-        self.session = ClientSession(bot.loop)
+        self.session = ClientSession(loop=bot.loop)
 
     def __unload(self):
         self.session.close()
@@ -18,7 +18,7 @@ class Animal:
             json = await d.json()
         url = json["data"][0]["url"]
         async with self.session.get(url) as i:
-            data = i.read()
+            data = await i.read()
         await ctx.send(file=File(fp=BytesIO(data)))
 
 
