@@ -7,7 +7,7 @@ from io import BytesIO
 class Animal:
     def __init__(self, bot:CBot):
         self.bot = bot
-        self.session = ClientSession(bot.loop)
+        self.session = ClientSession(loop=bot.loop)
 
     def __unload(self):
         self.session.close()
