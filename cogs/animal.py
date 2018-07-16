@@ -19,7 +19,7 @@ class Animal:
         url = json["data"][0]["url"]
         async with self.session.get(url) as i:
             data = await i.read()
-        await ctx.send(file=File(fp=BytesIO(data)))
+        await ctx.send(file=File(fp=BytesIO(data), filename="dog.png"))
 
 
 def setup(bot:CBot):
