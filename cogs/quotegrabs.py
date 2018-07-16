@@ -91,10 +91,14 @@ class Quotegrabs:
 
     # List quotes of passed user.
     @commands.command()
-    async def list(self, ctx, arg):
-        user_id = quotegrabs.convert_ID(arg)
+    async def list(self, ctx, arg=None):
+        if arg is None:
+            q = "SELECT * FROM quotes ORDER BY quote_id DESC;"
+        else:
+            user_id = quotegrabs.convert_ID(arg)
+            q = "SELECT * FROM quotes WHERE user_id=%s ORDER BY quote_id DESC;", (user_id,)
         async with self.bot.db() as db:
-            quote_list = await db("SELECT * FROM quotes WHERE user_id=%s ORDER BY quote_id DESC;", (user_id,))
+            quote_list = await db(q)
         if quote_list is None:
             ctx.send("User has no quotes / doesn't exist.")
         else:
