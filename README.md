@@ -12,6 +12,8 @@ Just a bot tailored towards the needs of the BUNKER server's users.
 * Facts:
     * `!cat`: Gives you a random cat fact.
     * `!shark`: Gives you a random shark fact.
+* Animal:
+    * `!dog`: Sends a random dog image.
 * Role colour:
     * `!col [colour]`: Creates and assigns a role to the sender based on a hex colour value they provide
         * Requires bot to have role management permissions, and to possess a role higher than the assignee.
